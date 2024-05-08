@@ -15,11 +15,13 @@ class Session:
     websocket: WebSocket | None
     last_active_ts: int = 0
     is_alive: bool = True
+    uId: str | None = None
 
-    def __init__(self, sid: str, ws: WebSocket | None):
+    def __init__(self, sid: str, ws: WebSocket | None, uid: str | None = None):
         self.sid = sid
         self.websocket = ws
         self.last_active_ts = int(time.time())
+        self.uid = uid
 
     async def loop_recv(self, dispatch: Callable):
         try:
@@ -73,4 +75,5 @@ class Session:
         if self.last_active_ts < int(time.time()) - DEL_DELT_SEC:
             return False
         self.is_alive = data.get('is_alive', False)
+        self.uid = data.get('uid', None)
         return True

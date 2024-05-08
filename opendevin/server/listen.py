@@ -38,10 +38,13 @@ security_scheme = HTTPBearer()
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     sid = get_sid_from_token(websocket.query_params.get('token') or '')
+    uid = websocket.query_params.get('uid')
     if sid == '':
         logger.error('Failed to decode token')
         return
-    session_manager.add_session(sid, websocket)
+    if uid is not None:
+        logger.info(f'User {uid} connected with session ID {sid}')
+    session_manager.add_session(sid, websocket, uid)
     agent_manager.register_agent(sid)
     await session_manager.loop_recv(sid, agent_manager.dispatch)
 
@@ -131,7 +134,7 @@ def refresh_files():
 
 
 @app.get('/api/select-file')
-def select_file(file: str):
+async def select_file(file: str):
     try:
         workspace_base = config.get(ConfigType.WORKSPACE_BASE)
         file_path = Path(workspace_base, file)
