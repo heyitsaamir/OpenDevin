@@ -38,7 +38,7 @@ MAX_OUTPUT_LENGTH = 5000
 INITIAL_THOUGHTS = [
     'I exist!',
     'Hmm...looks like I can type in a command line prompt',
-    'Looks like I have a web browser too!',
+    'Looks like I have a web browser too! I can browse the internet!',
     "Here's what I want to do: $TASK",
     'How am I going to get there though?',
     'It seems like I have some kind of short term memory.',
@@ -220,7 +220,7 @@ class MonologueAgent(Agent):
                     action = MessageAction(thought)
                 self._add_event(action.to_memory())
 
-    def step(self, state: State) -> Action:
+    async def step(self, state: State) -> Action:
         """
         Modifies the current state by adding the most recent actions and observations, then prompts the model to think about it's next action to take using monologue, memory, and hint.
 
@@ -243,7 +243,7 @@ class MonologueAgent(Agent):
             state.background_commands_obs,
         )
         messages = [{'content': prompt, 'role': 'user'}]
-        resp = self.llm.completion(messages=messages)
+        resp = await self.llm.completion(messages=messages)
         action_resp = resp['choices'][0]['message']['content']
         state.num_of_chars += len(prompt) + len(action_resp)
         action = prompts.parse_action_response(action_resp)

@@ -114,7 +114,7 @@ class CodeActAgent(Agent):
         super().__init__(llm)
         self.messages: List[Mapping[str, str]] = []
 
-    def step(self, state: State) -> Action:
+    async def step(self, state: State) -> Action:
         """
         Performs one step using the CodeAct Agent.
         This includes gathering info on previous steps and prompting the model to make a command to execute.
@@ -186,8 +186,7 @@ class CodeActAgent(Agent):
                     raise NotImplementedError(
                         f'Unknown observation type: {obs.__class__}'
                     )
-
-        response = self.llm.completion(
+        response = await self.llm.completion(
             messages=self.messages,
             stop=[
                 '</execute_ipython>',

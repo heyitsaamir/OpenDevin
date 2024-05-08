@@ -34,6 +34,16 @@ LLM_TEMPERATURE = config.get(ConfigType.LLM_TEMPERATURE)
 LLM_TOP_P = config.get(ConfigType.LLM_TOP_P)
 
 
+def async_partial(f, *args, **kwargs):
+    async def f2(*args2, **kwargs2):
+        result = f(*args, *args2, **kwargs, **kwargs2)
+        if asyncio.iscoroutinefunction(f):
+            result = await result
+        return result
+
+    return f2
+
+
 class LLM:
     """
     The LLM class represents a Language Model instance.
@@ -108,7 +118,7 @@ class LLM:
                 # with thousands of unwanted tokens
                 self.max_output_tokens = 1024
 
-        self._completion = partial(
+        self._completion = async_partial(
             litellm_completion,
             model=self.model_name,
             api_key=self.api_key,
@@ -139,7 +149,7 @@ class LLM:
             ),
             after=attempt_on_error,
         )
-        def wrapper(*args, **kwargs):
+        async def wrapper(*args, **kwargs):
             if 'messages' in kwargs:
                 messages = kwargs['messages']
             else:
@@ -148,19 +158,18 @@ class LLM:
             for message in messages:
                 debug_message += '\n\n----------\n\n' + message['content']
             llm_prompt_logger.debug(debug_message)
-            resp = completion_unwrapped(*args, **kwargs)
+            resp = await completion_unwrapped(*args, **kwargs)
             message_back = resp['choices'][0]['message']['content']
             llm_response_logger.debug(message_back)
             return resp
 
         self._completion = wrapper  # type: ignore
 
-    @property
-    def completion(self):
+    async def completion(self, *args, **kwargs):
         """
         Decorator for the litellm completion function.
         """
-        return self._completion
+        return await self._completion(*args, **kwargs)
 
     def get_token_count(self, messages):
         """

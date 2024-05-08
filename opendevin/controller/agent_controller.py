@@ -257,7 +257,8 @@ class AgentController:
         action: Action = NullAction()
         observation: Observation = NullObservation('')
         try:
-            action = self.agent.step(self.state)
+            action_after_step = await self.agent.step(self.state)
+            action = action_after_step
             if action is None:
                 raise AgentNoActionError('No action was returned')
         except (AgentMalformedActionError, AgentNoActionError, LLMOutputError) as e:

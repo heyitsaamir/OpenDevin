@@ -23,7 +23,7 @@ class PlannerAgent(Agent):
         """
         super().__init__(llm)
 
-    def step(self, state: State) -> Action:
+    async def step(self, state: State) -> Action:
         """
         Checks to see if current step is completed, returns AgentFinishAction if True.
         Otherwise, creates a plan prompt and sends to model for inference, returning the result as the next action.
@@ -40,7 +40,7 @@ class PlannerAgent(Agent):
             return AgentFinishAction()
         prompt = get_prompt(state.plan, state.history)
         messages = [{'content': prompt, 'role': 'user'}]
-        resp = self.llm.completion(messages=messages)
+        resp = await self.llm.completion(messages=messages)
         action_resp = resp['choices'][0]['message']['content']
         state.num_of_chars += len(prompt) + len(action_resp)
         action = parse_response(action_resp)

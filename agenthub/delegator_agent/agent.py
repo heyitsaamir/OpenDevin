@@ -24,7 +24,7 @@ class DelegatorAgent(Agent):
         """
         super().__init__(llm)
 
-    def step(self, state: State) -> Action:
+    async def step(self, state: State) -> Action:
         """
         Checks to see if current step is completed, returns AgentFinishAction if True.
         Otherwise, creates a plan prompt and sends to model for inference, returning the result as the next action.
