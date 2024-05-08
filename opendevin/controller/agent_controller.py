@@ -52,6 +52,7 @@ class AgentController:
     delegate: 'AgentController | None' = None
     state: State | None = None
     _agent_state: AgentState = AgentState.LOADING
+    recently_completed_state: State | None = None
     _cur_step: int = 0
 
     def __init__(
@@ -184,6 +185,7 @@ class AgentController:
     async def reset_task(self):
         if self.agent_task is not None:
             self.agent_task.cancel()
+        self.recently_completed_state = self.state
         self.state = None
         self._cur_step = 0
         self.agent.reset()
@@ -292,6 +294,9 @@ class AgentController:
 
     def get_state(self):
         return self.state
+
+    def get_most_recent_state(self):
+        return self.state or self.recently_completed_state
 
     def _is_stuck(self):
         if (

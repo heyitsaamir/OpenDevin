@@ -20,15 +20,17 @@ from opendevin.runtime import files
 from opendevin.server.agent import agent_manager
 from opendevin.server.auth import get_sid_from_token, sign_token
 from opendevin.server.session import message_stack, session_manager
+from opendevin.server.session.room import room_manager
 
 app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=['http://localhost:3001'],
-    allow_credentials=True,
-    allow_methods=['*'],
-    allow_headers=['*'],
-)
+# Remove middleware because it's causing some issues. Add this back in later.
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=['*'],
+#     allow_credentials=True,
+#     allow_methods=['*'],
+#     allow_headers=['*'],
+# )
 
 security_scheme = HTTPBearer()
 
@@ -75,7 +77,7 @@ async def get_agents():
 
 @app.get('/api/auth')
 async def get_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(security_scheme)
 ):
     """
     Generate a JWT for authentication when starting a WebSocket connection. This endpoint checks if valid credentials
@@ -170,15 +172,13 @@ async def upload_file(file: UploadFile):
     return {'filename': file.filename, 'location': str(file_path)}
 
 
-@app.get('/api/plan')
-def get_plan(
-    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
-):
-    sid = get_sid_from_token(credentials.credentials)
+def get_plan_for_sid(sid: str):
+    if sid not in agent_manager.sid_to_agent:
+        return None
     agent = agent_manager.sid_to_agent[sid]
     controller = agent.controller
     if controller is not None:
-        state = controller.get_state()
+        state = controller.get_most_recent_state()
         if state is not None:
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
@@ -189,6 +189,23 @@ def get_plan(
                     }
                 ),
             )
+    return None
+
+
+@app.get('/api/plan')
+async def get_plan(
+    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
+):
+    sid = get_sid_from_token(credentials.credentials)
+    plan_for_sid = get_plan_for_sid(sid)
+    if plan_for_sid is not None:
+        return plan_for_sid
+    else:
+        related_sids = room_manager.get_all_related_sessions(sid)
+        for related_sid in related_sids:
+            plan_for_sid = get_plan_for_sid(related_sid)
+            if plan_for_sid is not None:
+                return plan_for_sid
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
