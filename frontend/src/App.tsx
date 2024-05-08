@@ -8,7 +8,7 @@ import { Container, Orientation } from "#/components/Resizable";
 import Workspace from "#/components/Workspace";
 import LoadPreviousSessionModal from "#/components/modals/load-previous-session/LoadPreviousSessionModal";
 import SettingsModal from "#/components/modals/settings/SettingsModal";
-import { fetchMsgTotal } from "#/services/session";
+import { fetchMsgs } from "#/services/session";
 import Socket from "#/services/socket";
 import { ResFetchMsgTotal } from "#/types/ResponseType";
 import "./App.css";
@@ -17,6 +17,15 @@ import AgentStatusBar from "./components/AgentStatusBar";
 import Terminal from "./components/terminal/Terminal";
 import { initializeAgent } from "./services/agent";
 import { settingsAreUpToDate } from "./services/settings";
+import { app } from "@microsoft/teams-js";
+import store from "#/store";
+import { appendError } from "./state/errorsSlice";
+import { setTeamsContext } from "./state/teamsSlice";
+import toast from "./utils/toast";
+import { handleAssistantMessage } from "./services/actions";
+import { addChatMessageFromEvent } from "./services/chatService";
+import { getPlan } from "./services/planService";
+import { setPlan } from "./state/planSlice";
 
 interface Props {
   setSettingOpen: (isOpen: boolean) => void;
@@ -57,31 +66,71 @@ function App(): JSX.Element {
     onOpenChange: onLoadPreviousSessionModalOpenChange,
   } = useDisclosure();
 
-  const getMsgTotal = () => {
-    if (isWarned) return;
-    fetchMsgTotal()
-      .then((data: ResFetchMsgTotal) => {
-        if (data.msg_total > 0) {
-          onLoadPreviousSessionModalOpen();
-          setIsWarned(true);
+  const onResumeSession = async () => {
+    try {
+      const { messages } = await fetchMsgs();
+      toast.debugInfo(`Fetched ${messages.length} messages from the session`);
+      messages.forEach((message) => {
+        if (message.role === "user") {
+          addChatMessageFromEvent(message.payload);
         }
-      })
-      .catch();
+
+        if (message.role === "assistant") {
+          handleAssistantMessage(message.payload);
+        }
+      });
+      const fetchedPlan = await getPlan();
+      store.dispatch(setPlan(fetchedPlan));
+    } catch (error) {
+      toast.stickyError("ws", "Error fetching the session");
+    }
   };
 
   useEffect(() => {
     if (initOnce) return;
     initOnce = true;
 
+    const initApp = (userId?: string) => {
+      Socket.registerCallback("open", [onResumeSession]);
+      initializeAgent(userId)
+        .then(() => {
+          toast.info("Agent initialized for user " + userId);
+        })
+        .catch((e) => {
+          console.error(e);
+          toast.stickyError("ws", "Connection failed. Retry...");
+        });
+    };
+
     if (!settingsAreUpToDate()) {
       onSettingsModalOpen();
     } else {
-      initializeAgent();
+      app
+        .initialize()
+        .then(() => {
+          app
+            .getContext()
+            .then((context) => {
+              store.dispatch(setTeamsContext(context));
+              toast.stickySuccess(
+                "Teams",
+                `Teams context fetched! User is ${context.user?.id}`,
+              );
+              initApp(context.user?.id);
+            })
+            .catch((e) => {
+              store.dispatch(
+                appendError(e.message ?? "Eroror fetching teams context"),
+              );
+            });
+        })
+        .catch((e) => {
+          store.dispatch(
+            appendError(e.message ?? "Eroror fetching teams context"),
+          );
+          initApp();
+        });
     }
-
-    Socket.registerCallback("open", [getMsgTotal]);
-
-    getMsgTotal();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -89,23 +138,13 @@ function App(): JSX.Element {
     <div className="h-screen w-screen flex flex-col">
       <div className="flex grow bg-neutral-900 text-white min-h-0">
         <Container
-          orientation={Orientation.HORIZONTAL}
-          className="grow h-full min-h-0 min-w-0 px-3 pt-3"
-          initialSize={500}
-          firstChild={<ChatInterface />}
-          firstClassName="min-w-[500px] rounded-xl overflow-hidden border border-neutral-600"
-          secondChild={
-            <Container
-              orientation={Orientation.VERTICAL}
-              className="grow h-full min-h-0 min-w-0"
-              initialSize={window.innerHeight - 300}
-              firstChild={<Workspace />}
-              firstClassName="min-h-72 rounded-xl border border-neutral-600 bg-neutral-800 flex flex-col overflow-hidden"
-              secondChild={<Terminal />}
-              secondClassName="min-h-72 rounded-xl border border-neutral-600 bg-neutral-800"
-            />
-          }
-          secondClassName="flex flex-col overflow-hidden grow min-w-[500px]"
+          orientation={Orientation.VERTICAL}
+          className="grow h-full min-h-0 min-w-0"
+          initialSize={window.innerHeight - 300}
+          firstChild={<Workspace />}
+          firstClassName="min-h-72 rounded-xl border border-neutral-600 bg-neutral-800 flex flex-col overflow-hidden"
+          secondChild={<Terminal />}
+          secondClassName="min-h-72 rounded-xl border border-neutral-600 bg-neutral-800"
         />
       </div>
       <Controls setSettingOpen={onSettingsModalOpen} />

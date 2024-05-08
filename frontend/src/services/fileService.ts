@@ -1,3 +1,5 @@
+import { BACKEND_URL } from "./constants";
+
 export type WorkspaceFile = {
   name: string;
   children?: WorkspaceFile[];
@@ -29,7 +31,7 @@ export async function uploadFile(file: File) {
 }
 
 export async function getWorkspace(): Promise<WorkspaceFile> {
-  const res = await fetch("/api/refresh-files");
+  const res = await fetch(`${BACKEND_URL}/api/refresh-files`);
   const data = await res.json();
   return data as WorkspaceFile;
 }

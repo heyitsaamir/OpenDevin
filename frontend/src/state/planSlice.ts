@@ -17,11 +17,25 @@ export const planSlice = createSlice({
   },
   reducers: {
     setPlan: (state, action) => {
-      state.plan = action.payload as Plan;
+      if (action.payload != null) {
+        state.plan = action.payload as Plan;
+      }
+    },
+    resetPlan: (state) => {
+      state.plan = {
+        mainGoal: undefined,
+        task: {
+          id: "",
+          goal: "",
+          parent: "Task | None",
+          subtasks: [],
+          state: TaskState.OPEN_STATE,
+        },
+      };
     },
   },
 });
 
-export const { setPlan } = planSlice.actions;
+export const { setPlan, resetPlan } = planSlice.actions;
 
 export default planSlice.reducer;

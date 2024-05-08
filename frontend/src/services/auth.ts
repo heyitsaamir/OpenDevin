@@ -1,12 +1,24 @@
 import * as jose from "jose";
 import { ResFetchToken } from "#/types/ResponseType";
+import { BACKEND_URL } from "./constants";
 
-const fetchToken = async (): Promise<ResFetchToken> => {
+const fetchToken = async (userId?: string): Promise<ResFetchToken> => {
   const headers = new Headers({
     "Content-Type": "application/json",
     Authorization: `Bearer ${localStorage.getItem("token")}`,
   });
-  const response = await fetch(`/api/auth`, { headers });
+
+  // Create URLSearchParams object
+  const params = new URLSearchParams();
+  if (userId) {
+    params.append("uid", userId);
+  }
+
+  // Append params to the URL
+  const response = await fetch(`${BACKEND_URL}/api/auth?${params.toString()}`, {
+    headers,
+  });
+
   if (response.status !== 200) {
     throw new Error("Get token failed.");
   }
@@ -23,13 +35,13 @@ export const validateToken = (token: string): boolean => {
   }
 };
 
-const getToken = async (): Promise<string> => {
+const getToken = async (userId?: string): Promise<string> => {
   const token = localStorage.getItem("token") ?? "";
   if (validateToken(token)) {
     return token;
   }
 
-  const data = await fetchToken();
+  const data = await fetchToken(userId);
   if (data.token === undefined || data.token === "") {
     throw new Error("Get token failed.");
   }

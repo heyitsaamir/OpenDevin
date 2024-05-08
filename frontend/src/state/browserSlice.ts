@@ -17,9 +17,13 @@ export const browserSlice = createSlice({
     setScreenshotSrc: (state, action) => {
       state.screenshotSrc = action.payload;
     },
+    resetBrowser: (state) => {
+      state.url = initialState.url;
+      state.screenshotSrc = initialState.screenshotSrc;
+    },
   },
 });
 
-export const { setUrl, setScreenshotSrc } = browserSlice.actions;
+export const { setUrl, setScreenshotSrc, resetBrowser } = browserSlice.actions;
 
 export default browserSlice.reducer;

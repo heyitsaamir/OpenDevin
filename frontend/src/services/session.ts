@@ -3,13 +3,16 @@ import {
   ResFetchMsgs,
   ResFetchMsgTotal,
 } from "../types/ResponseType";
+import { BACKEND_URL } from "./constants";
 
 const fetchMsgTotal = async (): Promise<ResFetchMsgTotal> => {
   const headers = new Headers({
     "Content-Type": "application/json",
     Authorization: `Bearer ${localStorage.getItem("token")}`,
   });
-  const response = await fetch(`/api/messages/total`, { headers });
+  const response = await fetch(`${BACKEND_URL}/api/messages/total`, {
+    headers,
+  });
   if (response.status !== 200) {
     throw new Error("Get message total failed.");
   }
@@ -22,7 +25,7 @@ const fetchMsgs = async (): Promise<ResFetchMsgs> => {
     "Content-Type": "application/json",
     Authorization: `Bearer ${localStorage.getItem("token")}`,
   });
-  const response = await fetch(`/api/messages`, { headers });
+  const response = await fetch(`${BACKEND_URL}/api/messages`, { headers });
   if (response.status !== 200) {
     throw new Error("Get messages failed.");
   }
@@ -35,7 +38,7 @@ const clearMsgs = async (): Promise<ResDelMsg> => {
     "Content-Type": "application/json",
     Authorization: `Bearer ${localStorage.getItem("token")}`,
   });
-  const response = await fetch(`/api/messages`, {
+  const response = await fetch(`${BACKEND_URL}/api/messages`, {
     method: "DELETE",
     headers,
   });

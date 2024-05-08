@@ -69,4 +69,18 @@ export default {
       },
     });
   },
+
+  debugInfo: (msg: string) => {
+    toast(msg, {
+      position: "bottom-center",
+      className: "bg-neutral-700",
+
+      style: {
+        background: "#333",
+        color: "#fff",
+        lineBreak: "anywhere",
+      },
+      icon: "🐞",
+    });
+  },
 };

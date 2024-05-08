@@ -2,6 +2,7 @@
 import toast from "#/utils/toast";
 import { handleAssistantMessage } from "./actions";
 import { getToken } from "./auth";
+import { BACKEND_WSS_URL } from "./constants";
 
 class Socket {
   private static _socket: WebSocket | null = null;
@@ -22,26 +23,34 @@ class Socket {
   private static initializing = false;
 
   public static tryInitialize(): void {
-    if (Socket.initializing) return;
-    Socket.initializing = true;
-    getToken()
-      .then((token) => {
-        Socket._initialize(token);
-      })
-      .catch(() => {
-        const msg = `Connection failed. Retry...`;
-        toast.stickyError("ws", msg);
+    Socket.tryInitializeAwait().catch(() => {
+      const msg = `Connection failed. Retry...`;
+      toast.stickyError("ws", msg);
 
-        setTimeout(() => {
-          this.tryInitialize();
-        }, 1500);
-      });
+      setTimeout(() => {
+        this.tryInitialize();
+      }, 1500);
+    });
   }
 
-  private static _initialize(token: string): void {
+  public static async tryInitializeAwait(userId?: string): Promise<void> {
+    if (Socket.initializing) return;
+    Socket.initializing = true;
+    const result = await getToken(userId);
+    Socket._initialize(result, userId);
+  }
+
+  private static _initialize(token: string, userId?: string): void {
     if (Socket.isConnected()) return;
 
-    const WS_URL = `ws://${window.location.host}/ws?token=${token}`;
+    const params = new URLSearchParams();
+    params.append("token", token);
+    if (userId) {
+      params.append("uid", userId);
+    }
+    // Hardcode the url here to a wss because teams requires only secure connections from its iframs
+    // const WS_URL = `ws://${window.location.host}/ws?token=${token}`;
+    const WS_URL = `${BACKEND_WSS_URL}/ws?${params.toString()}`;
     Socket._socket = new WebSocket(WS_URL);
 
     Socket._socket.onopen = (e) => {
@@ -122,7 +131,5 @@ class Socket {
     Socket.callbacks[event].push(...callbacks);
   }
 }
-
-Socket.tryInitialize();
 
 export default Socket;

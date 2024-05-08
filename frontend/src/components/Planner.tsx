@@ -60,7 +60,7 @@ interface PlanProps {
 function PlanContainer({ plan }: PlanProps): JSX.Element {
   const { t } = useTranslation();
 
-  if (plan.mainGoal === undefined) {
+  if (plan?.mainGoal === undefined) {
     return (
       <div className="w-full h-full flex flex-col text-neutral-400 items-center justify-center">
         <VscListOrdered size={100} />
