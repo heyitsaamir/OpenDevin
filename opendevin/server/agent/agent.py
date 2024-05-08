@@ -17,7 +17,7 @@ from opendevin.events.observation import (
 )
 from opendevin.events.stream import EventSource, EventStream, EventStreamSubscriber
 from opendevin.llm.llm import LLM
-from opendevin.server.session import session_manager
+from opendevin.server.session import session_manager, message_stack, room_manager
 
 
 class AgentUnit:
@@ -74,6 +74,12 @@ class AgentUnit:
             await self.event_stream.add_event(
                 ChangeAgentStateAction(AgentState.INIT), EventSource.USER
             )
+            return
+        elif action == ActionType.CLEAR_MESSAGES:
+            related_sessions = room_manager.get_all_related_sessions(self.sid)
+            for session_id in related_sessions:
+                message_stack.clear_messages(session_id)
+                await session_manager.send(session_id, data)
             return
         elif action == ActionType.START:
             if self.controller is None:

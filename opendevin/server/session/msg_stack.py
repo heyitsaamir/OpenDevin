@@ -91,5 +91,10 @@ class MessageStack:
         except json.decoder.JSONDecodeError:
             pass
 
+    def clear_messages(self, sid: str):
+        if sid in self._messages:
+            self._messages[sid] = []
+        self._save_messages()
+
 
 message_stack = MessageStack()

@@ -1,5 +1,5 @@
 import { setScreenshotSrc, setUrl } from "#/state/browserSlice";
-import { addAssistantMessage } from "#/state/chatSlice";
+import { addAssistantMessage, clearMessages } from "#/state/chatSlice";
 import { setCode, updatePath } from "#/state/codeSlice";
 import { appendInput } from "#/state/commandSlice";
 import { appendJupyterInput } from "#/state/jupyterSlice";
@@ -10,8 +10,12 @@ import { ActionMessage } from "#/types/Message";
 import { SocketMessage } from "#/types/ResponseType";
 import { handleObservationMessage } from "./observations";
 import { getPlan } from "./planService";
+import { clearMsgs } from "./session";
 
 const messageActions = {
+  [ActionType.INIT]: () => {
+    store.dispatch(clearMessages());
+  },
   [ActionType.BROWSE]: (message: ActionMessage) => {
     const { url, screenshotSrc } = message.args;
     store.dispatch(setUrl(url));
@@ -45,6 +49,11 @@ const messageActions = {
   },
   [ActionType.MODIFY_TASK]: () => {
     getPlan().then((fetchedPlan) => store.dispatch(setPlan(fetchedPlan)));
+  },
+  [ActionType.CLEAR_MESSAGES]: () => {
+    store.dispatch(clearMessages());
+    store.dispatch(resetBrowser());
+    store.dispatch(resetPlan());
   },
 };
 
