@@ -1,11 +1,13 @@
-
 from typing import Dict
-from opendevin.logger import opendevin_logger as logger
+
+from opendevin.core.logger import opendevin_logger as logger
 
 
 class SessionRoomManager:
-    _session_id_to_user_id: Dict[str, str] = {}   # 1 user can have multiple session ids
-    _user_id_to_session_id: Dict[str, list[str]] = {}   # 1 session id can only have 1 user
+    _session_id_to_user_id: Dict[str, str] = {}  # 1 user can have multiple session ids
+    _user_id_to_session_id: Dict[
+        str, list[str]
+    ] = {}  # 1 session id can only have 1 user
 
     def add_session(self, sid: str, uid: str):
         self._session_id_to_user_id[sid] = uid
@@ -14,7 +16,9 @@ class SessionRoomManager:
             sessions_for_uid.remove(sid)
         except ValueError:
             pass
-        logger.info(f'Adding session {sid} for user {uid}. Current sessions: {sessions_for_uid}')
+        logger.info(
+            f'Adding session {sid} for user {uid}. Current sessions: {sessions_for_uid}'
+        )
         sessions_for_uid.append(sid)
         self._user_id_to_session_id[uid] = sessions_for_uid
 

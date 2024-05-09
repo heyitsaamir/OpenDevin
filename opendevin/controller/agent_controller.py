@@ -91,6 +91,7 @@ class AgentController:
             logger.warning(
                 'CodeActAgent requires DockerSSHBox as sandbox! Using other sandbox that are not stateful (LocalBox, DockerExecBox) will not work properly.'
             )
+        logger.info('AgentController initialized')
 
     async def close(self):
         if self.agent_task is not None:

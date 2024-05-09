@@ -102,35 +102,35 @@ function App(): JSX.Element {
         });
     };
 
-    if (!settingsAreUpToDate()) {
-      onSettingsModalOpen();
-    } else {
-      app
-        .initialize()
-        .then(() => {
-          app
-            .getContext()
-            .then((context) => {
-              store.dispatch(setTeamsContext(context));
-              toast.stickySuccess(
-                "Teams",
-                `Teams context fetched! User is ${context.user?.id}`,
-              );
-              initApp(context.user?.id);
-            })
-            .catch((e) => {
-              store.dispatch(
-                appendError(e.message ?? "Eroror fetching teams context"),
-              );
-            });
-        })
-        .catch((e) => {
-          store.dispatch(
-            appendError(e.message ?? "Eroror fetching teams context"),
-          );
-          initApp();
-        });
-    }
+    // if (!settingsAreUpToDate()) {
+    //   onSettingsModalOpen();
+    // } else {
+    app
+      .initialize()
+      .then(() => {
+        app
+          .getContext()
+          .then((context) => {
+            store.dispatch(setTeamsContext(context));
+            toast.stickySuccess(
+              "Teams",
+              `Teams context fetched! User is ${context.user?.id}`,
+            );
+            initApp(context.user?.id);
+          })
+          .catch((e) => {
+            store.dispatch(
+              appendError(e.message ?? "Eroror fetching teams context"),
+            );
+          });
+      })
+      .catch((e) => {
+        store.dispatch(
+          appendError(e.message ?? "Eroror fetching teams context"),
+        );
+        initApp();
+      });
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

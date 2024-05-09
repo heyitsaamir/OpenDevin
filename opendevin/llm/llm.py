@@ -1,7 +1,7 @@
-from functools import partial
+import asyncio
 
 import litellm
-from litellm import completion as litellm_completion
+from litellm import acompletion as litellm_completion
 from litellm.exceptions import (
     APIConnectionError,
     RateLimitError,

@@ -1,9 +1,9 @@
-import { setScreenshotSrc, setUrl } from "#/state/browserSlice";
+import { resetBrowser, setScreenshotSrc, setUrl } from "#/state/browserSlice";
 import { addAssistantMessage, clearMessages } from "#/state/chatSlice";
 import { setCode, updatePath } from "#/state/codeSlice";
 import { appendInput } from "#/state/commandSlice";
 import { appendJupyterInput } from "#/state/jupyterSlice";
-import { setPlan } from "#/state/planSlice";
+import { resetPlan, setPlan } from "#/state/planSlice";
 import store from "#/store";
 import ActionType from "#/types/ActionType";
 import { ActionMessage } from "#/types/Message";
