@@ -18,7 +18,7 @@ HISTORY_SIZE = 10
 
 prompt = """
 # Task
-You're a diligent software engineer AI. You can't see or draw but you can read and write files, run commands, and you can think. 
+You're a diligent software engineer AI. You can't see or draw but you can read and write files, run commands, and you can think.
 You also have the ability to browse the web.
 
 You've been given the following task:
