@@ -86,6 +86,7 @@ It must be an object, and it must contain two fields:
   * `url` - the URL to open
 * `message` - make a plan, set a goal, or record your thoughts. Arguments:
   * `content` - the message to record
+  * `wait_for_response` - set to true if you need clarification from the user before proceeding. Use sparingly and only if it is difficult to make progress without further clarification.
 * `add_task` - add a task to your plan. Arguments:
   * `parent` - the ID of the parent task
   * `goal` - the goal of the task
