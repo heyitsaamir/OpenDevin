@@ -24,13 +24,13 @@ from opendevin.server.session.room import room_manager
 
 app = FastAPI()
 # Remove middleware because it's causing some issues. Add this back in later.
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=['*'],
-#     allow_credentials=True,
-#     allow_methods=['*'],
-#     allow_headers=['*'],
-# )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
 security_scheme = HTTPBearer()
 
@@ -77,7 +77,7 @@ async def get_agents():
 
 @app.get('/api/auth')
 async def get_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security_scheme)
+    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
 ):
     """
     Generate a JWT for authentication when starting a WebSocket connection. This endpoint checks if valid credentials

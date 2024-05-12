@@ -108,23 +108,27 @@ function App(): JSX.Element {
     app
       .initialize()
       .then(() => {
+        // toast.debugInfo("Teams initialized");
         app
           .getContext()
           .then((context) => {
+            // toast.debugInfo("Teams context fetched");
             store.dispatch(setTeamsContext(context));
             toast.stickySuccess(
               "Teams",
-              `Teams context fetched! User is ${context.user?.id}`,
+              `Teams context fetched for user ${context.user?.displayName}`,
             );
             initApp(context.user?.id);
           })
           .catch((e) => {
+            toast.stickyError("err1", JSON.stringify(e));
             store.dispatch(
               appendError(e.message ?? "Eroror fetching teams context"),
             );
           });
       })
       .catch((e) => {
+        toast.stickyError("err2", JSON.stringify(e));
         store.dispatch(
           appendError(e.message ?? "Eroror fetching teams context"),
         );

@@ -34,7 +34,10 @@ class Socket {
   }
 
   public static async tryInitializeAwait(userId?: string): Promise<void> {
-    if (Socket.initializing) return;
+    if (Socket.initializing) {
+      toast.debugInfo("Socket is initializing");
+      return;
+    }
     Socket.initializing = true;
     const result = await getToken(userId);
     Socket._initialize(result, userId);

@@ -15,7 +15,7 @@ const fetchToken = async (userId?: string): Promise<ResFetchToken> => {
   }
 
   // Append params to the URL
-  const response = await fetch(`${BACKEND_URL}/api/auth?${params.toString()}`, {
+  const response = await fetch(`${BACKEND_URL}/api/auth`, {
     headers,
   });
 
